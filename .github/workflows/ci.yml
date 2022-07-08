@@ -1,8 +1,9 @@
 name: ci
 
 on:
-  pull_request:
   push:
+    branches:
+      - main
   schedule:
     - cron: 0 0 * * 0
 
@@ -22,6 +23,19 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.10
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f workflow/requirements.txt ]; then pip install -r workflow/requirements.txt; fi
+      - name: Apply template and tag
+        run: |
+          python workflow/apply_template.py
+      # Add code to create git tag and pass tag to docker image
       -
         name: Build and push
         uses: docker/build-push-action@v3
